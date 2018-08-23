@@ -251,7 +251,6 @@ Run one year in parallel like this (same as above but =grep= for the year):
 + Read in each day
 + Apply quick filter
 + Fill gaps
-+ Record where data is stale missing
 + Export
 #+BEGIN_SRC sh :results verbatim
 
@@ -362,30 +361,30 @@ done
 #+END_SRC
 #+RESULTS:
 
-** Staleness
+** Age
 #+BEGIN_SRC sh :results verbatim
 
 out=$1
 
-g.mapset -c stale
-mkdir ${out}/stale
+g.mapset -c age
+mkdir ${out}/age
 for year in $(seq 2000 2017); do
   g.remove -f type=raster pattern=*
-  mkdir ${out}/stale/${year}
+  mkdir ${out}/age/${year}
 
   # read in all days for this year
   seq -w 060 274 | parallel --bar r.external input=${out}/${year}/${year}_{.}.tif output=day_{.} --o
 
-  r.mapcalc "stale = -1" --o # initial value everywhere
+  r.mapcalc "age = -1" --o # initial value everywhere
   for d in $(seq -w 061 274); do
     d0=$(echo "$d-1"|bc -l)
     d0=$(printf %03G $d0)
 
-    # if the data changed from yesterday, set stale to 0. Otherwise,
-    # set it to stale+1, unless it was -1 (no valid data yet) in which
+    # if the data changed from yesterday, set age to 0. Otherwise,
+    # set it to age+1, unless it was -1 (no valid data yet) in which
     # case keep it at -1
-    r.mapcalc "stale = if(day_${d} != day_${d0}, 0, if(stale == -1, -1, stale+1))" --o
-    r.out.gdal -cm input=stale output=${out}/stale/${year}/${year}_${d}.tif type=Int16 createopt="COMPRESS=DEFLATE" --o
+    r.mapcalc "age = if(day_${d} != day_${d0}, 0, if(age == -1, -1, age+1))" --o
+    r.out.gdal -cm input=age output=${out}/age/${year}/${year}_${d}.tif type=Int16 createopt="COMPRESS=DEFLATE" --o
   done
 done
 #+END_SRC
