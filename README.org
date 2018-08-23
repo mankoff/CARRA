@@ -1,0 +1,5 @@
+* README
+
+Re-gridding albedo data products for CARRA.
+
+See code embedded in Org files in sub-folders.
